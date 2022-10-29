@@ -4,7 +4,7 @@
  * @license    This project is released under the ThuanLe License.
  * @version    1.0.0
  * @date       2021-01-07
- * @author     Thuan Le
+ * @author     Bony
  * @brief      MGS (BLE Magnetometer Service)
  * @note       None
  * @example    None

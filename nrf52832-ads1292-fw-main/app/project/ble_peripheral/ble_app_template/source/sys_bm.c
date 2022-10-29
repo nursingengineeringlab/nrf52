@@ -4,7 +4,7 @@
  * @license    This project is released under the ThuanLe License.
  * @version    1.0.0
  * @date       2021-01-24
- * @author     Thuan Le
+ * @author     Bony
  * @brief      System module to handle Battery Monitor (BM)
  * @note       None
  * @example    None

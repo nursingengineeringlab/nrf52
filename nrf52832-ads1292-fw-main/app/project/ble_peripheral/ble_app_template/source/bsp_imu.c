@@ -4,7 +4,7 @@
  * @license    This project is released under the ThuanLe License.
  * @version    1.0.0
  * @date       2021-03-24
- * @author     Thuan Le
+ * @author     Bony
  * @brief      Board support package for IMU (MPU9250)
  * @note       None
  * @example    None

@@ -162,12 +162,15 @@
       <file file_name="../../../../../../components/ble/ble_services/ble_dis/ble_dis.c" />
     </folder>
     <file file_name="../../../../../../modules/nrfx/drivers/src/nrfx_ppi.c" />
+    <configuration
+      Name="Release"
+      c_preprocessor_definitions="CONFIG_NFCT_PINS_AS_GPIOS = 1" />
   </project>
   <configuration
     Name="Release"
     c_preprocessor_definitions="NDEBUG"
     c_user_include_directories="../../../../../../components/ble/ble_link_ctx_manager;../../../../../../components/libraries/uart;../../../source;../../../source/ads1292;../../../source/flash"
-    gcc_optimization_level="Optimize For Size"
+    gcc_optimization_level="None"
     link_time_optimization="No"
     linker_section_placement_file="$(StudioDir)/targets/section_placement.xml"
     linker_section_placement_macros="FLASH_START=0x26000;FLASH_SIZE=0x5a000;RAM_START=0x20002ad8;RAM_SIZE=0xd528" />

@@ -48,14 +48,14 @@
 #endif
 
 /* Private defines ---------------------------------------------------- */
-#define APP_BLE_CONN_CFG_TAG            1                                           /**< A tag identifying the SoftDevice BLE configuration. */
+#define APP_BLE_CONN_CFG_TAG            1                                          /**< A tag identifying the SoftDevice BLE configuration. */
 
-#define SENSORS_MEAS_INTERVAL           APP_TIMER_TICKS(2000)                       /**< Sensors measurement interval (ticks). */
-#define BATT_LEVEL_MEAS_INTERVAL        APP_TIMER_TICKS(20000)                      /**< Battery level measurement interval (ticks). */
+#define SENSORS_MEAS_INTERVAL           APP_TIMER_TICKS(2000)                      /**< Sensors measurement interval (ticks). */
+#define BATT_LEVEL_MEAS_INTERVAL        APP_TIMER_TICKS(20000)                     /**< Battery level measurement interval (ticks). */
 
-#define DEVICE_NAME                     "imu-lcd"                                   /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "imu-lcd"                                  /**< Name of device. Will be included in the advertising data. */
 
-#define MANUFACTURER_NAME               "miBEAT"                                    /**< Manufacturer. Will be passed to Device Information Service. */
+#define MANUFACTURER_NAME               "miBEAT"                                   /**< Manufacturer. Will be passed to Device Information Service. */
 
 #define ACS_SERVICE_UUID_TYPE           BLE_UUID_TYPE_VENDOR_BEGIN                  /**< UUID type for the Nordic UART Service (vendor specific). */
 
@@ -76,11 +76,11 @@
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
 #define MA_FILTER_SIZE                  50                                          /**< Size of MA filter for filtering ECG/EMG data. */ 
-#define EMG_SIGNAL_SIZE                 1024                                        /**< Size of processed ECG/EMG signal. */ 
+#define EMG_SIGNAL_SIZE                 64                                          /**< Size of processed ECG/EMG signal. */ 
 #define ENVELOPE_SIZE                   100                                         /**< Size of EMG envelope. */
-#define THRESHOLD                       0 
+#define THRESHOLD                       0                                           /**< Threshold for myopulse percent 
 
-/* Private macros ----------------------------------------------------- */          /**< BLE HRNS service instance. */
+/* Private macros ----------------------------------------------------- */                                                            /**< BLE HRNS service instance. */
 BLE_ACS_DEF(m_acs);                                                                 /**< BLE ACS service instance. */
 BLE_MGS_DEF(m_mgs);                                                                 /**< BLE MGS service instance. */
 BLE_GYS_DEF(m_gys);                                                                 /**< BLE GYS service instance. */
@@ -99,20 +99,23 @@ static ble_uuid_t m_adv_uuids[]          =                                      
   {BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}
 };
 
-uint32_t app_time;                                                                  /**< Elapsed time in the app. */                                                                                                                                           
-double emg_value_raw;                                                               /**< Current raw ECG/EMG sample from AFE. */  
-double emg_mean_absolute_value;                                                     /**< Mean absolute value for the collected ECG/EMG samples. */                                                         
-double emg_integrated;                                                              /**< Integrated ECG/EMG value for the collected samples. */ 
-double emg_ssi;                                                                     /**< Integrated square ECG/EMG value for collected samples. */
-double emg_variance;                                                                /**< Variance of ECG/EMG signal. */  
-double emg_myopulse_percent;                                                        /**< Myopulse percentage rate of ECG/EMG signal. */
+// uint32_t app_time;
+// int16_t ecg_value;
 
-double emg_array_raw[MA_FILTER_SIZE];                                               /**< Raw ECG/EMG signals used for MA filter. */ 
-uint8_t emg_array_raw_index;                                                        /**< Index for ecg_array_raw. */ 
-double emg_array_out[EMG_SIGNAL_SIZE];                                              /**< Processed output ECG/EMG signals. */ 
-uint8_t emg_array_out_index;                                                        /**< Index for ecg_array_out. */
-double emg_envelope[ENVELOPE_SIZE];                                                 /**< EMG envelope. */
-uint8_t emg_envelope_index;                                                         /**< Index for EMG envelope. */
+uint32_t app_time;                                                                   /**< Elapsed time in the app. */                                                                                                                                           
+int16_t emg_value_raw;                                                               /**< Current raw ECG/EMG sample from AFE. */  
+int16_t emg_mean_absolute_value;                                                     /**< Mean absolute value for the collected ECG/EMG samples. */                                                         
+int16_t emg_integrated;                                                              /**< Integrated ECG/EMG value for the collected samples. */ 
+int16_t emg_ssi;                                                                     /**< Integrated square ECG/EMG value for collected samples. */
+int16_t emg_variance;                                                                /**< Variance of ECG/EMG signal. */  
+int16_t emg_myopulse_percent;                                                        /**< Myopulse percentage rate of ECG/EMG signal. */
+
+int16_t emg_array_raw[MA_FILTER_SIZE];                                               /**< Raw ECG/EMG signals used for MA filter. */ 
+uint8_t emg_array_raw_index;                                                         /**< Index for ecg_array_raw. */ 
+int16_t emg_array_out[EMG_SIGNAL_SIZE];                                              /**< Processed output ECG/EMG signals. */ 
+uint8_t emg_array_out_index;                                                         /**< Index for ecg_array_out. */
+int16_t emg_envelope[ENVELOPE_SIZE];                                                 /**< EMG envelope. */
+uint8_t emg_envelope_index;                                                          /**< Index for EMG envelope. */
 
 /* Private function prototypes ---------------------------------------- */
 static void timers_init(void);
@@ -151,17 +154,7 @@ static void application_timers_start(void);
  */
 int main(void)
 {
-  // initialize
-  log_init();
-  timers_init();
-  power_management_init();
-
-  ble_stack_init();
-  gap_params_init();
-  gatt_init();
-  services_init();
-  advertising_init();
-  conn_params_init();
+  // Initialize.
 
   // initialize arrays 
   emg_array_raw_index = 0; 
@@ -169,30 +162,34 @@ int main(void)
 
   double MA_sum = 0; 
 
-  // initialize BSP
+  log_init();
+  timers_init();
+  power_management_init();
+  ble_stack_init();
+  gap_params_init();
+  gatt_init();
+  services_init();
+  advertising_init();
+  conn_params_init();
+
   bsp_hw_init();
   bsp_nand_flash_init();
   bsp_imu_init();
   bsp_afe_init();
 
-  // start execution
+  // Start execution.
   application_timers_start();
   advertising_start();
 
-  /*
-  - change variable names
-  - use interrupt 
-  - 1 Khz initial 
-   */ 
-
-  // superloop 
   for (;;)
   {
     NRF_LOG_PROCESS();
 
     if (bsp_afe_get_ecg(&emg_value_raw) == BS_OK) {
+      // works for MA filter, trying iEMG
+
       // print raw EMG data
-      NRF_LOG_RAW_INFO("In EMG: %d\n", emg_value_raw);
+      NRF_LOG_INFO("In EMG: %d\n", emg_value_raw);
 
       // add raw sample to ecg_array_raw, increment index
       emg_array_raw[emg_array_raw_index] = emg_value_raw; 
@@ -205,42 +202,25 @@ int main(void)
 
       // print processed EMG value, increment index 
       NRF_LOG_RAW_INFO("Out EMG: %d\n", emg_array_out[emg_array_out_index]); 
-
       if(emg_array_out_index < EMG_SIGNAL_SIZE - 1) emg_array_out_index++; 
       else emg_array_out_index = 0; 
 
-      // loop through stored samples to calculate iEMG & SSI
       for(uint8_t i = 0; i < EMG_SIGNAL_SIZE; i++) {
         emg_integrated += emg_array_out[i];
-        emg_ssi += emg_array_out[i] * emg_array_out[i]; 
-
-        if(emg_array_out[i] > THRESHOLD) {
-          emg_myopulse_percent += 1; 
-          emg_envelope[emg_envelope_index] = emg_array_out[i]; 
-
-          if(emg_envelope_index < ENVELOPE_SIZE - 1) emg_envelope_index++; 
-          else emg_envelope_index = 0; 
-        }
-      } 
+      }
 
       // calculate MAV, variance, and myopulse %
       emg_mean_absolute_value = emg_integrated / EMG_SIGNAL_SIZE; 
-      emg_variance = emg_ssi / (EMG_SIGNAL_SIZE - 1);
-      emg_myopulse_percent /= EMG_SIGNAL_SIZE; 
 
-      NRF_LOG_RAW_INFO("iEMG: %d\n", emg_mean_absolute_value); 
-      NRF_LOG_RAW_INFO("MAV: %d\n", emg_integrated); 
-      NRF_LOG_RAW_INFO("SSI: %d\n", emg_ssi); 
-      NRF_LOG_RAW_INFO("Var: %d\n", emg_variance); 
+      NRF_LOG_RAW_INFO("MAV: %d\n", emg_mean_absolute_value); 
+      NRF_LOG_RAW_INFO("iEMG: %d\n", emg_integrated); 
+      NRF_LOG_RAW_INFO("\n"); 
 
+      // reset variables
+      MA_sum = 0; 
       emg_integrated = 0;
       emg_mean_absolute_value = 0; 
-      emg_ssi = 0; 
-      emg_variance = 0; 
-      emg_myopulse_percent = 0; 
     }
-
-    else NRF_LOG_RAW_INFO("ERROR: Fault in sensor\n");
   }
 }
 
